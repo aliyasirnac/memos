@@ -10,6 +10,7 @@ import Explore from "@/pages/Explore";
 import Home from "@/pages/Home";
 import Inboxes from "@/pages/Inboxes";
 import MemoDetail from "@/pages/MemoDetail";
+import Messages from "@/pages/Messages";
 import NotFound from "@/pages/NotFound";
 import PermissionDenied from "@/pages/PermissionDenied";
 import Resources from "@/pages/Resources";
@@ -27,6 +28,7 @@ export enum Routes {
   EXPLORE = "/explore",
   ABOUT = "/about",
   AUTH = "/auth",
+  MESSAGES = "/messages",
 }
 
 const router = createBrowserRouter([
@@ -71,6 +73,10 @@ const router = createBrowserRouter([
           {
             path: Routes.INBOX,
             element: <Inboxes />,
+          },
+          {
+            path: Routes.MESSAGES,
+            element: <Messages />,
           },
           {
             path: Routes.ARCHIVED,

@@ -1,6 +1,17 @@
 import { Tooltip } from "@mui/joy";
 import clsx from "clsx";
-import { ArchiveIcon, BellIcon, Globe2Icon, HomeIcon, LogInIcon, PaperclipIcon, SettingsIcon, SmileIcon, User2Icon } from "lucide-react";
+import {
+  ArchiveIcon,
+  BellIcon,
+  Globe2Icon,
+  HomeIcon,
+  LogInIcon,
+  PaperclipIcon,
+  SettingsIcon,
+  SmileIcon,
+  User2Icon,
+  MessageCircleIcon,
+} from "lucide-react";
 import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -85,6 +96,19 @@ const Navigation = (props: Props) => {
       </>
     ),
   };
+  const messageNavLink: NavLinkItem = {
+    id: "header-message",
+    path: Routes.MESSAGES,
+    title: t("common.messages"),
+    icon: (
+      <>
+        <div className="relative">
+          <MessageCircleIcon className="w-6 h-auto opacity-70 shrink-0" />
+          {hasUnreadInbox && <div className="absolute top-0 left-5 w-2 h-2 rounded-full bg-blue-500"></div>}
+        </div>
+      </>
+    ),
+  };
   const archivedNavLink: NavLinkItem = {
     id: "header-archived",
     path: Routes.ARCHIVED,
@@ -111,7 +135,7 @@ const Navigation = (props: Props) => {
   };
 
   const navLinks: NavLinkItem[] = user
-    ? [homeNavLink, resourcesNavLink, exploreNavLink, profileNavLink, inboxNavLink, archivedNavLink, settingNavLink]
+    ? [homeNavLink, resourcesNavLink, exploreNavLink, profileNavLink, inboxNavLink, messageNavLink, archivedNavLink, settingNavLink]
     : [exploreNavLink, signInNavLink, aboutNavLink];
 
   return (

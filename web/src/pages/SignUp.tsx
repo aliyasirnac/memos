@@ -81,7 +81,7 @@ const SignUp = () => {
         </div>
         {!workspaceGeneralSetting.disallowUserRegistration ? (
           <>
-            <p className="w-full text-2xl mt-2 dark:text-gray-500">{t("auth.create-your-account")}</p>
+            <p className="w-full text-2xl mt-2 dark:text-gray-500">{t("auth.create-your-account")}31</p>
             <form className="w-full mt-2" onSubmit={handleFormSubmit}>
               <div className="flex flex-col justify-start items-start w-full gap-4">
                 <div className="w-full flex flex-col justify-start items-start">
