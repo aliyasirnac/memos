@@ -19,7 +19,7 @@ import { memoServiceClient } from "@/grpcweb";
 import useAsyncEffect from "@/hooks/useAsyncEffect";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import i18n from "@/i18n";
-import { useMemoFilterStore, useMemoList, useMemoStore } from "@/store/v1";
+import { useMemoFilterStore, useMemoMetadataStore } from "@/store/v1";
 import { useTranslate } from "@/utils/i18n";
 import ActivityCalendar from "./ActivityCalendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
@@ -34,9 +34,9 @@ interface UserMemoStats {
 const UserStatisticsView = () => {
   const t = useTranslate();
   const currentUser = useCurrentUser();
-  const memoStore = useMemoStore();
-  const memoList = useMemoList();
   const memoFilterStore = useMemoFilterStore();
+  const memoMetadataStore = useMemoMetadataStore();
+  const metadataList = Object.values(memoMetadataStore.getState().dataMapByName);
   const [memoAmount, setMemoAmount] = useState(0);
   const [memoStats, setMemoStats] = useState<UserMemoStats>({ link: 0, taskList: 0, code: 0, incompleteTasks: 0 });
   const [activityStats, setActivityStats] = useState<Record<string, number>>({});
@@ -45,14 +45,9 @@ const UserStatisticsView = () => {
   const days = Math.ceil((Date.now() - currentUser.createTime!.getTime()) / 86400000);
 
   useAsyncEffect(async () => {
-    if (memoList.size() === 0) return;
-
-    const { entities } = await memoServiceClient.listMemoProperties({
-      name: `memos/-`,
-    });
     const memoStats: UserMemoStats = { link: 0, taskList: 0, code: 0, incompleteTasks: 0 };
-    entities.forEach((entity) => {
-      const { property } = entity;
+    metadataList.forEach((memo) => {
+      const { property } = memo;
       if (property?.hasLink) {
         memoStats.link += 1;
       }
@@ -67,11 +62,11 @@ const UserStatisticsView = () => {
       }
     });
     setMemoStats(memoStats);
-    setMemoAmount(entities.length);
-    setActivityStats(countBy(entities.map((entity) => dayjs(entity.displayTime).format("YYYY-MM-DD"))));
-  }, [memoStore.stateId]);
+    setMemoAmount(metadataList.length);
+    setActivityStats(countBy(metadataList.map((memo) => dayjs(memo.displayTime).format("YYYY-MM-DD"))));
+  }, [memoMetadataStore.stateId]);
 
-  const rebuildMemoTags = async () => {
+  const rebuildMemoProperty = async () => {
     await memoServiceClient.rebuildMemoProperty({
       name: "memos/-",
     });
@@ -112,7 +107,7 @@ const UserStatisticsView = () => {
               <MoreVerticalIcon className="w-4 h-auto shrink-0 opacity-60" />
             </PopoverTrigger>
             <PopoverContent align="end" alignOffset={-12}>
-              <button className="w-auto flex flex-row justify-between items-center gap-2 hover:opacity-80" onClick={rebuildMemoTags}>
+              <button className="w-auto flex flex-row justify-between items-center gap-2 hover:opacity-80" onClick={rebuildMemoProperty}>
                 <RefreshCcwIcon className="text-gray-400 w-4 h-auto cursor-pointer opacity-60" />
                 <span className="text-sm shrink-0 text-gray-500 dark:text-gray-400">Rebuild properties</span>
               </button>
