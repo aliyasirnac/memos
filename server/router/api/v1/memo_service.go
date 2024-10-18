@@ -30,6 +30,7 @@ import (
 )
 
 const (
+	// DefaultPageSize is the default page size for listing memos.
 	DefaultPageSize = 10
 )
 
@@ -535,48 +536,6 @@ func (s *APIV1Service) ListMemoComments(ctx context.Context, request *v1pb.ListM
 	return response, nil
 }
 
-func (s *APIV1Service) RebuildMemoProperty(ctx context.Context, request *v1pb.RebuildMemoPropertyRequest) (*emptypb.Empty, error) {
-	user, err := s.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get current user")
-	}
-
-	normalRowStatus := store.Normal
-	memoFind := &store.FindMemo{
-		CreatorID:       &user.ID,
-		RowStatus:       &normalRowStatus,
-		ExcludeComments: true,
-	}
-	if (request.Name) != "memos/-" {
-		memoID, err := ExtractMemoIDFromName(request.Name)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid memo name: %v", err)
-		}
-		memoFind.ID = &memoID
-	}
-
-	memos, err := s.Store.ListMemos(ctx, memoFind)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list memos")
-	}
-
-	for _, memo := range memos {
-		property, err := memoproperty.GetMemoPropertyFromContent(memo.Content)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to get memo property: %v", err)
-		}
-		memo.Payload.Property = property
-		if err := s.Store.UpdateMemo(ctx, &store.UpdateMemo{
-			ID:      memo.ID,
-			Payload: memo.Payload,
-		}); err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to update memo")
-		}
-	}
-
-	return &emptypb.Empty{}, nil
-}
-
 func (s *APIV1Service) RenameMemoTag(ctx context.Context, request *v1pb.RenameMemoTagRequest) (*emptypb.Empty, error) {
 	user, err := s.GetCurrentUser(ctx)
 	if err != nil {
@@ -807,9 +766,6 @@ func convertVisibilityToStore(visibility v1pb.Visibility) store.Visibility {
 }
 
 func (s *APIV1Service) buildMemoFindWithFilter(ctx context.Context, find *store.FindMemo, filter string) error {
-	if find == nil {
-		find = &store.FindMemo{}
-	}
 	if find.PayloadFind == nil {
 		find.PayloadFind = &store.FindMemoPayload{}
 	}
@@ -912,7 +868,8 @@ func (s *APIV1Service) buildMemoFindWithFilter(ctx context.Context, find *store.
 		}
 
 		find.VisibilityList = []store.Visibility{store.Public}
-	} else if find.CreatorID != nil && *find.CreatorID != user.ID {
+	} else if find.CreatorID == nil || *find.CreatorID != user.ID {
+		// If creator is not specified or the creator is not the current user, only public and protected memos are visible.
 		find.VisibilityList = []store.Visibility{store.Public, store.Protected}
 	}
 

@@ -80,7 +80,8 @@ const MemoEditor = (props: Props) => {
   const [contentCache, setContentCache] = useLocalStorage<string>(contentCacheKey, "");
   const referenceRelations = memoName
     ? state.relationList.filter(
-        (relation) => relation.memo === memoName && relation.relatedMemo !== memoName && relation.type === MemoRelation_Type.REFERENCE,
+        (relation) =>
+          relation.memo?.name === memoName && relation.relatedMemo?.name !== memoName && relation.type === MemoRelation_Type.REFERENCE,
       )
     : state.relationList.filter((relation) => relation.type === MemoRelation_Type.REFERENCE);
   const workspaceMemoRelatedSetting =
@@ -155,8 +156,9 @@ const MemoEditor = (props: Props) => {
         void handleSaveBtnClick();
         return;
       }
-
-      handleEditorKeydownWithMarkdownShortcuts(event, editorRef.current);
+      if (!workspaceMemoRelatedSetting.disableMarkdownShortcuts) {
+        handleEditorKeydownWithMarkdownShortcuts(event, editorRef.current);
+      }
     }
     if (event.key === "Tab" && !state.isComposing) {
       event.preventDefault();
